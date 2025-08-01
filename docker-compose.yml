@@ -1,41 +1,43 @@
-
-version: "3.8"
 services:
   mongodb:
     container_name: mongo
     image: mongo:latest
     volumes:
-      - ./backend/data:/data
+      - mongo_data:/data/db  # Changed to named volume (better persistence)
     ports:
       - "27017:27017"
+    restart: unless-stopped  # Added auto-restart
 
   backend:
     container_name: backend
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile  # Explicit Dockerfile path
     env_file:
-      - ./backend/.env.docker
+      - ./backend/.env  # Changed to standard .env filename
     ports:
       - "5000:5000"
     depends_on:
       - mongodb
+    restart: unless-stopped
 
   frontend:
     container_name: frontend
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     env_file:
-      - ./frontend/.env.docker
+      - ./frontend/.env  # Changed to standard .env filename
     ports:
       - "5173:5173"
+    restart: unless-stopped
 
   redis:
     container_name: redis
-    restart: unless-stopped
     image: redis:7.0.5-alpine 
-    expose:
-        - 6379
-    depends_on:
-      - mongodb
+    ports:  # Changed expose to ports for external access
+      - "6379:6379"
+    restart: unless-stopped
 
 volumes:
-  data:
-
+  mongo_data:  # Named volume for MongoDB
